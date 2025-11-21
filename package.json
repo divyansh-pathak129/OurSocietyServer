@@ -1,0 +1,51 @@
+{
+  "name": "oursocietyserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "init-db": "node scripts/initDatabase.js",
+    "test-schemas": "node scripts/testSchemas.js",
+    "test-services": "node scripts/testServices.js",
+    "test-auth": "node scripts/testAuth.js",
+    "test-user-endpoints": "node scripts/testUserEndpointsManual.js",
+    "test-forum-endpoints": "node scripts/testForumEndpoints.js",
+    "test-contact-endpoints": "node scripts/testContactEndpoints.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
+    "test:integration": "jest __tests__/integration --runInBand",
+    "test:unit": "jest __tests__/unit --runInBand",
+    "test:verbose": "jest --verbose --runInBand",
+    "test:manual": "npm run test-schemas && npm run test-services && npm run test-user-endpoints && npm run test-forum-endpoints && npm run test-contact-endpoints"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "joi": "^17.13.3",
+    "mongodb": "^6.17.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.10",
+    "socket.io": "^4.8.1",
+    "uploadthing": "^7.7.4",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "axios": "^1.10.0",
+    "jest": "^30.0.4",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb-memory-server": "^10.2.0",
+    "supertest": "^7.1.3"
+  }
+}
