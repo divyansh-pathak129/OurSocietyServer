@@ -39,12 +39,60 @@ router.put('/', verifyClerkToken, verifyAdminAuth, asyncHandler(async (req, res)
   });
 }));
 
+// Get society settings (maintenance etc.)
+router.get('/settings', verifyClerkToken, verifyAdminAuth, asyncHandler(async (req, res) => {
+  try {
+    const db = dbConnection.getDb();
+    const societyService = new SocietyService(db);
+    const result = await societyService.findById(req.adminUser.societyId);
+    
+    if (!result.success || !result.data) {
+      return res.status(404).json({ success: false, message: 'Society not found' });
+    }
+
+    return res.json({ 
+      success: true, 
+      settings: result.data.settings || {},
+      data: result.data 
+    });
+  } catch (error) {
+    console.error('Error fetching society settings:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to fetch settings' });
+  }
+}));
+
 // Update society settings (maintenance etc.)
 router.put('/settings', verifyClerkToken, verifyAdminAuth, asyncHandler(async (req, res) => {
-  const db = dbConnection.getDb();
-  const societyService = new SocietyService(db);
-  const update = await societyService.updateSettings(req.adminUser.societyId, req.body || {});
-  return res.json({ success: true, data: update.data || null });
+  try {
+    const db = dbConnection.getDb();
+    const societyService = new SocietyService(db);
+    console.log('PUT /settings - Request body:', JSON.stringify(req.body, null, 2));
+    console.log('PUT /settings - Maintenance rates:', JSON.stringify(req.body.maintenance?.rates, null, 2));
+    
+    const update = await societyService.updateSettings(req.adminUser.societyId, req.body || {});
+    
+    console.log('PUT /settings - Update result:', {
+      success: update.success,
+      hasData: !!update.data,
+      hasSettings: !!update.data?.settings,
+      hasMaintenance: !!update.data?.settings?.maintenance,
+      hasRates: !!update.data?.settings?.maintenance?.rates,
+      ratesCount: update.data?.settings?.maintenance?.rates?.length || 0
+    });
+    
+    return res.json({ 
+      success: true, 
+      data: update.data || null,
+      settings: update.data?.settings || null
+    });
+  } catch (error) {
+    console.error('Error updating society settings:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Failed to update settings',
+      error: error.toString()
+    });
+  }
 }));
 
 // Wings CRUD

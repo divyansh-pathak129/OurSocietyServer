@@ -37,7 +37,8 @@ class SocietyService extends BaseService {
         name: 1,
         address: 1,
         totalWings: 1,
-        totalFlats: 1
+        totalFlats: 1,
+        wings: 1
       };
 
       return await this.find({}, { 
@@ -97,12 +98,101 @@ class SocietyService extends BaseService {
         throw new Error('Society not found');
       }
 
+      // Deep merge settings, especially for nested objects like maintenance
+      const existingSettings = society.data.settings || {};
       const updatedSettings = {
-        ...society.data.settings,
+        ...existingSettings,
         ...settings
       };
 
-      return await this.updateById(societyId, { settings: updatedSettings });
+      // Deep merge maintenance settings if both exist
+      if (settings.maintenance && existingSettings.maintenance) {
+        updatedSettings.maintenance = {
+          ...existingSettings.maintenance,
+          ...settings.maintenance
+        };
+        // Ensure rates array is properly included (don't merge, replace)
+        if (settings.maintenance.rates !== undefined) {
+          updatedSettings.maintenance.rates = settings.maintenance.rates;
+        }
+      } else if (settings.maintenance) {
+        // If only new maintenance settings exist, use them directly
+        updatedSettings.maintenance = settings.maintenance;
+      }
+
+      // Deep merge other nested settings objects if needed
+      if (settings.notifications && existingSettings.notifications) {
+        updatedSettings.notifications = {
+          ...existingSettings.notifications,
+          ...settings.notifications
+        };
+      }
+
+      if (settings.userManagement && existingSettings.userManagement) {
+        updatedSettings.userManagement = {
+          ...existingSettings.userManagement,
+          ...settings.userManagement
+        };
+      }
+
+      if (settings.forum && existingSettings.forum) {
+        updatedSettings.forum = {
+          ...existingSettings.forum,
+          ...settings.forum
+        };
+      }
+
+      // Log what we're about to save
+      console.log('Updated settings to save:', JSON.stringify(updatedSettings, null, 2));
+      console.log('Maintenance rates being saved:', JSON.stringify(updatedSettings.maintenance?.rates, null, 2));
+
+      // Use updateOne directly to avoid validation issues with partial updates
+      const societyObjectId = ObjectId.isValid(societyId) ? new ObjectId(societyId) : societyId;
+      
+      console.log('SocietyService: About to update MongoDB with:', {
+        societyId: societyObjectId.toString(),
+        settingsKeys: Object.keys(updatedSettings),
+        maintenanceRates: updatedSettings.maintenance?.rates?.length || 0,
+        maintenanceRatesData: JSON.stringify(updatedSettings.maintenance?.rates, null, 2)
+      });
+      
+      const result = await this.collection.updateOne(
+        { _id: societyObjectId },
+        { 
+          $set: { 
+            settings: updatedSettings,
+            updatedAt: new Date()
+          } 
+        }
+      );
+
+      console.log('SocietyService: MongoDB update result:', {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        acknowledged: result.acknowledged,
+        upsertedId: result.upsertedId
+      });
+
+      if (result.matchedCount === 0) {
+        throw new Error('Society not found');
+      }
+
+      // Verify what was actually saved
+      const verify = await this.findById(societyId);
+      const savedRates = verify.data?.settings?.maintenance?.rates || [];
+      console.log('SocietyService: Settings after save verification:', {
+        hasSettings: !!verify.data?.settings,
+        hasMaintenance: !!verify.data?.settings?.maintenance,
+        hasRates: !!verify.data?.settings?.maintenance?.rates,
+        ratesCount: savedRates.length,
+        ratesData: JSON.stringify(savedRates, null, 2)
+      });
+      
+      return {
+        success: true,
+        data: verify.data,
+        modified: result.modifiedCount > 0
+      };
     } catch (error) {
       console.error('Error updating society settings:', error.message);
       throw error;

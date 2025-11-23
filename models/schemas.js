@@ -231,9 +231,11 @@ const validateSociety = (societyData) => {
   }
 
   if (societyData.settings) {
+    // Legacy maintenanceAmount field (optional for backward compatibility)
     if (
-      typeof societyData.settings.maintenanceAmount !== "number" ||
-      societyData.settings.maintenanceAmount < 0
+      societyData.settings.maintenanceAmount !== undefined &&
+      (typeof societyData.settings.maintenanceAmount !== "number" ||
+      societyData.settings.maintenanceAmount < 0)
     ) {
       errors.push("settings.maintenanceAmount must be a non-negative number");
     }
@@ -246,6 +248,24 @@ const validateSociety = (societyData) => {
       errors.push(
         "settings.maintenanceDueDate must be a number between 1 and 31"
       );
+    }
+
+    // Validate maintenance rates if provided
+    if (societyData.settings.maintenance && Array.isArray(societyData.settings.maintenance.rates)) {
+      societyData.settings.maintenance.rates.forEach((rate, index) => {
+        if (!rate.fromDate || typeof rate.fromDate !== "string") {
+          errors.push(`settings.maintenance.rates[${index}].fromDate is required and must be a string`);
+        }
+        if (rate.toDate !== null && rate.toDate !== undefined && typeof rate.toDate !== "string") {
+          errors.push(`settings.maintenance.rates[${index}].toDate must be a string or null`);
+        }
+        if (typeof rate.ownerAmount !== "number" || rate.ownerAmount < 0) {
+          errors.push(`settings.maintenance.rates[${index}].ownerAmount must be a non-negative number`);
+        }
+        if (typeof rate.tenantAmount !== "number" || rate.tenantAmount < 0) {
+          errors.push(`settings.maintenance.rates[${index}].tenantAmount must be a non-negative number`);
+        }
+      });
     }
 
     if (typeof societyData.settings.allowTenantForumAccess !== "boolean") {

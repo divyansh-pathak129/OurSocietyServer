@@ -5,6 +5,7 @@ const multer = require('multer');
 const { verifyClerkToken, clerkClient } = require('../middleware/auth');
 const { UserService } = require('../models/services');
 const MaintenanceService = require('../models/services/MaintenanceService');
+const SocietyService = require('../models/services/SocietyService');
 const dbConnection = require('../config/database');
 const { ObjectId } = require('mongodb');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -405,6 +406,74 @@ router.get('/calendar', verifyClerkToken, asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch maintenance calendar'
+    });
+  }
+}));
+
+/**
+ * GET /api/maintenance/settings
+ * Get maintenance settings for current user's society
+ * Requires authentication
+ */
+router.get('/settings', verifyClerkToken, asyncHandler(async (req, res) => {
+  try {
+    const clerkUserId = req.userId;
+    
+    const db = dbConnection.getDb();
+    const userService = new UserService(db);
+    const societyService = new SocietyService(db);
+
+    // Get user details from database
+    const userResult = await userService.findByClerkUserId(clerkUserId);
+    if (!userResult.success || !userResult.data || !userResult.data.societyId) {
+      return res.json({
+        success: true,
+        data: {
+          maintenance: {
+            amount: 0,
+            dueDate: 5,
+            lateFee: 0,
+            gracePeriod: 0,
+            rates: []
+          }
+        }
+      });
+    }
+
+    // Get society settings
+    const societyResult = await societyService.findById(userResult.data.societyId);
+    if (!societyResult.success || !societyResult.data) {
+      return res.json({
+        success: true,
+        data: {
+          maintenance: {
+            amount: 0,
+            dueDate: 5,
+            lateFee: 0,
+            gracePeriod: 0,
+            rates: []
+          }
+        }
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        maintenance: societyResult.data.settings?.maintenance || {
+          amount: 0,
+          dueDate: 5,
+          lateFee: 0,
+          gracePeriod: 0,
+          rates: []
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching maintenance settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch maintenance settings'
     });
   }
 }));

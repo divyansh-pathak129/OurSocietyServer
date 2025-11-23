@@ -27,7 +27,15 @@ router.get('/societies', verifyClerkToken, getUserDetails, ensureUserDocument, a
       address: society.address,
       totalWings: society.totalWings,
       totalFlats: society.totalFlats,
-      description: society.description || `${society.name} - ${society.address}`
+      description: society.description || `${society.name} - ${society.address}`,
+      wings: Array.isArray(society.wings)
+        ? society.wings.map(wing => ({
+            id: wing._id ? wing._id.toString() : undefined,
+            name: wing.name,
+            floors: wing.floors,
+            flatsPerFloor: wing.flatsPerFloor
+          }))
+        : []
     }));
 
     res.json({

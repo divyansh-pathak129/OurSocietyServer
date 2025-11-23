@@ -155,6 +155,7 @@ router.get('/records', verifyClerkToken, verifyAdminAuth, asyncHandler(async (re
           userWing: user.wing || 'N/A',
           userFlat: user.flatNumber || 'N/A',
           userPhone: user.contactNumber || 'N/A',
+          residentType: user.residentType || 'Owner', // Include resident type
           societyId: societyId.toString(),
           societyName: societyName, // From MongoDB, not user data
           month: month,
@@ -195,6 +196,7 @@ router.get('/records', verifyClerkToken, verifyAdminAuth, asyncHandler(async (re
           userWing: user.wing || 'N/A',
           userFlat: user.flatNumber || 'N/A',
           userPhone: user.contactNumber || 'N/A',
+          residentType: user.residentType || 'Owner', // Include resident type
           societyId: societyId.toString(),
           societyName: societyName, // From MongoDB, not user data
           month: month,

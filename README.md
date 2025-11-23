@@ -25,11 +25,13 @@ A Node.js/Express backend server for the OurSociety application, providing RESTf
 ## 📦 Installation
 
 1. **Navigate to the backend directory:**
+
    ```bash
    cd OurSocietyServer
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
@@ -75,22 +77,27 @@ LOG_LEVEL=info
 ## 🚀 Running the Server
 
 ### Development Mode (with auto-reload)
+
 ```bash
 npm run dev
 ```
 
 ### Production Mode
+
 ```bash
 npm start
 ```
 
 ### Health Check
+
 Once the server is running, verify it's working:
+
 ```bash
 curl http://localhost:5000/health
 ```
 
 Expected response:
+
 ```json
 {
   "status": "OK",
@@ -142,22 +149,26 @@ OurSocietyServer/
 ## 🔌 API Endpoints
 
 ### Base URL
+
 - **Development**: `http://localhost:5000/api`
 - **Production**: Your production domain + `/api`
 
 ### Main Endpoints
 
 #### Authentication & Users
+
 - `GET /api/users/profile` - Get current user profile
 - `GET /api/users/society/members` - Get society members
 - `POST /api/users/register` - Register new user
 
 #### Societies
+
 - `GET /api/societies` - List all societies
 - `GET /api/societies/:id` - Get society details
 - `POST /api/societies/register` - Register new society
 
 #### Maintenance
+
 - `GET /api/maintenance/calendar` - Get maintenance calendar
 - `GET /api/maintenance/history` - Get payment history
 - `GET /api/maintenance/summary` - Get maintenance summary
@@ -165,23 +176,27 @@ OurSocietyServer/
 - `POST /api/maintenance/upload-file` - Upload payment screenshot (file)
 
 #### Forum
+
 - `GET /api/forum` - Get forum posts
 - `POST /api/forum` - Create forum post
 - `PUT /api/forum/:id` - Update forum post
 - `DELETE /api/forum/:id` - Delete forum post
 
 #### Contacts
+
 - `GET /api/contacts` - Get all contacts
 - `POST /api/contacts` - Create contact (admin only)
 - `PUT /api/contacts/:id` - Update contact (admin only)
 - `DELETE /api/contacts/:id` - Delete contact (admin only)
 
 #### Events
+
 - `GET /api/events` - Get all events
 - `GET /api/events/upcoming` - Get upcoming events
 - `GET /api/events/:id` - Get event details
 
 #### Admin Routes
+
 - `GET /api/admin/dashboard` - Admin dashboard stats
 - `GET /api/admin/users` - List all users
 - `GET /api/admin/maintenance/records` - Get all maintenance records
@@ -193,11 +208,13 @@ OurSocietyServer/
 - `DELETE /api/admin/events/:id` - Delete event (admin)
 
 #### File Uploads
+
 - `POST /api/uploadthing/upload` - Upload file to UploadThing
 
 ### Authentication
 
 All protected routes require a Clerk authentication token in the Authorization header:
+
 ```
 Authorization: Bearer <clerk_token>
 ```
@@ -211,27 +228,32 @@ Set `LOG_LEVEL=debug` in your `.env` file for verbose logging.
 ### View Logs
 
 Logs are stored in the `logs/` directory:
+
 - `logs/combined.log` - All logs
 - `logs/error.log` - Error logs only
 
 ### Common Debugging Steps
 
 1. **Check Database Connection:**
+
    ```bash
    npm run test-schemas
    ```
 
 2. **Test Authentication:**
+
    ```bash
    npm run test-auth
    ```
 
 3. **Test User Endpoints:**
+
    ```bash
    npm run test-user-endpoints
    ```
 
 4. **Check Server Health:**
+
    ```bash
    curl http://localhost:5000/health
    ```
@@ -250,21 +272,25 @@ Logs are stored in the `logs/` directory:
 ## 🧪 Testing
 
 ### Run All Tests
+
 ```bash
 npm test
 ```
 
 ### Run Tests in Watch Mode
+
 ```bash
 npm run test:watch
 ```
 
 ### Run Tests with Coverage
+
 ```bash
 npm run test:coverage
 ```
 
 ### Run Specific Test Suites
+
 ```bash
 # Integration tests
 npm run test:integration
@@ -274,6 +300,7 @@ npm run test:unit
 ```
 
 ### Manual Testing Scripts
+
 ```bash
 # Test schemas
 npm run test-schemas
@@ -297,45 +324,58 @@ npm run test:manual
 ## ❗ Common Issues
 
 ### Issue: "Database not connected"
-**Solution**: 
+
+**Solution**:
+
 - Verify `MONGODB_URI` in `.env` is correct
 - Check MongoDB Atlas network access (whitelist your IP)
 - Ensure MongoDB credentials are valid
 
 ### Issue: "Clerk authentication failed"
+
 **Solution**:
+
 - Verify `CLERK_SECRET_KEY` is correct
 - Check that the token is being sent in the `Authorization` header
 - Ensure the Clerk user exists and is active
 
 ### Issue: "CORS error"
+
 **Solution**:
+
 - Add your frontend URL to the `corsOptions.origin` array in `app.js`
 - Ensure credentials are enabled if needed
 - Check that the frontend is sending the correct headers
 
 ### Issue: "File upload fails"
+
 **Solution**:
+
 - If using UploadThing, verify `UPLOADTHING_SECRET` is set
 - Check file size limits (default: 4MB)
 - Ensure `uploads/` directory exists and has write permissions
 - Verify file type is allowed (images only)
 
 ### Issue: "Port already in use"
+
 **Solution**:
+
 - Change `PORT` in `.env` to a different port
 - Or kill the process using port 5000:
+
   ```bash
   # Windows
   netstat -ano | findstr :5000
   taskkill /PID <PID> /F
-  
+
   # Mac/Linux
   lsof -ti:5000 | xargs kill
   ```
 
 ### Issue: "Module not found"
+
 **Solution**:
+
 - Run `npm install` to ensure all dependencies are installed
 - Delete `node_modules` and `package-lock.json`, then run `npm install` again
 

@@ -143,7 +143,14 @@ class BaseService {
         updatedAt: new Date()
       };
 
+      // Log what we're updating (for debugging)
+      if (updateData.settings) {
+        console.log('BaseService: Updating with settings:', JSON.stringify(updateData.settings.maintenance?.rates || 'no rates', null, 2));
+      }
+
       // Validate update data if validator is provided
+      // For partial updates (like settings), we skip full document validation
+      // Only validate if we're updating the entire document structure
       if (this.validator && updateData) {
         // Get existing document for validation
         const existing = await this.collection.findOne({ _id: new ObjectId(id) });
@@ -151,17 +158,41 @@ class BaseService {
           throw new Error('Document not found');
         }
 
-        const mergedData = { ...existing, ...updateDoc };
-        const validation = this.validator(mergedData);
-        if (!validation.isValid) {
-          throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+        // Only validate if we're updating core fields, not just nested settings
+        // Skip validation for partial updates like settings, which don't require all fields
+        const isPartialUpdate = Object.keys(updateData).length === 1 && 
+                                (updateData.settings !== undefined || 
+                                 updateData.updatedAt !== undefined);
+        
+        if (!isPartialUpdate) {
+          const mergedData = { ...existing, ...updateDoc };
+          const validation = this.validator(mergedData);
+          if (!validation.isValid) {
+            throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+          }
         }
       }
+
+      // Log the actual MongoDB update operation
+      console.log('BaseService: MongoDB update operation:', {
+        filter: { _id: new ObjectId(id) },
+        update: { $set: updateDoc },
+        hasSettings: !!updateDoc.settings,
+        hasMaintenance: !!updateDoc.settings?.maintenance,
+        hasRates: !!updateDoc.settings?.maintenance?.rates,
+        ratesLength: updateDoc.settings?.maintenance?.rates?.length || 0
+      });
 
       const result = await this.collection.updateOne(
         { _id: new ObjectId(id) },
         { $set: updateDoc }
       );
+
+      console.log('BaseService: MongoDB update result:', {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        acknowledged: result.acknowledged
+      });
 
       if (result.matchedCount === 0) {
         throw new Error('Document not found');
